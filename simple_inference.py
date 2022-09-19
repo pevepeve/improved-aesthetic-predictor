@@ -1,27 +1,14 @@
-import webdataset as wds
 from PIL import Image
-import io
-import matplotlib.pyplot as plt
-import os
-import json
-
-from warnings import filterwarnings
-
 
 # os.environ["CUDA_VISIBLE_DEVICES"] = "0"    # choose GPU if you are on a multi GPU server
 import numpy as np
 import torch
 import pytorch_lightning as pl
 import torch.nn as nn
-from torchvision import datasets, transforms
-import tqdm
-
-from os.path import join
-from datasets import load_dataset
 import pandas as pd
 from torch.utils.data import Dataset, DataLoader
 import json
-
+import torch.nn.functional as F
 import clip
 
 
@@ -31,9 +18,6 @@ from PIL import Image, ImageFile
 #####  This script will predict the aesthetic score for this image file:
 
 img_path = "test.jpg"
-
-
-
 
 
 # if you changed the MLP architecture during training, change it also here:
@@ -91,11 +75,11 @@ def normalized(a, axis=-1, order=2):
 
 model = MLP(768)  # CLIP embedding dim is 768 for CLIP ViT L 14
 
-s = torch.load("sac+logos+ava1-l14-linearMSE.pth")   # load the model you trained previously or the model available in this repo
+s = torch.load("sac+logos+ava1-l14-linearMSE.pth", map_location=torch.device('cpu'))   # load the model you trained previously or the model available in this repo
 
 model.load_state_dict(s)
 
-model.to("cuda")
+#model.to("cuda")
 model.eval()
 
 
@@ -114,7 +98,7 @@ with torch.no_grad():
 
 im_emb_arr = normalized(image_features.cpu().detach().numpy() )
 
-prediction = model(torch.from_numpy(im_emb_arr).to(device).type(torch.cuda.FloatTensor))
+prediction = model(torch.from_numpy(im_emb_arr).to(device).type(torch.FloatTensor))
 
 print( "Aesthetic score predicted by the model:")
 print( prediction )
